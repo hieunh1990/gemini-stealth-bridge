@@ -1,3 +1,11 @@
+# Python & Documents
+__pycache__/
+*.pyc
+*.docx
+*.pdf
+SHA256SUMS
+*.zip
+
 # Compiled binaries & test artifacts
 /gsb
 *.test
@@ -9,6 +17,8 @@
 cookies.json
 web-credentials.json
 session-cache.json
+.env
+data/
 
 # Personal backlog & internal update plans, not part of the published repo.
 # Unanchored on purpose: these must stay ignored even if moved into a

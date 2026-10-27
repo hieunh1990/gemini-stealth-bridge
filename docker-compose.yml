@@ -36,5 +36,23 @@ services:
     volumes:
       - ${BRIDGE_DATA_DIR:-gsb-data}:/data
 
+  bidv-minutes:
+    build:
+      context: ./service
+      dockerfile: Dockerfile
+    container_name: bidv-minutes-service
+    restart: unless-stopped
+    ports:
+      - "${BIDV_BIND_IP:-0.0.0.0}:${BIDV_PORT:-20135}:20135"
+    environment:
+      GSB_URL: "http://gsb:20133/v1/chat/completions"
+      GSB_API_KEY: "${BRIDGE_API_KEY:-public}"
+      DEFAULT_MODEL: "gemini-argon"
+      OUTPUT_DIR: "/app/outputs"
+    volumes:
+      - ./data/outputs:/app/outputs
+    depends_on:
+      - gsb
+
 volumes:
   gsb-data:
