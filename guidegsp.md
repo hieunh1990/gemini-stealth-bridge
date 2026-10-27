@@ -15,7 +15,7 @@ Hệ thống được đóng gói và vận hành dưới dạng Docker Compose 
                       └───────┬───────────────────────────────┬───────┘
                               │                               │
             1. Gọi Biên bản BIDV (.docx/.pdf)                 │ 2. Gọi LLM trực tiếp
-            POST http://<host>:20135/api/v1/generate          │ POST http://<host>:20133/v1/chat/completions
+            POST http://100.116.58.118:20135/api/v1/generate  │ POST http://100.116.58.118:20133/v1/chat/completions
                               │                               │
                               ▼                               │
               ┌───────────────────────────────┐               │
@@ -35,13 +35,18 @@ Hệ thống được đóng gói và vận hành dưới dạng Docker Compose 
               └───────────────────────────────────────────────┘
 ```
 
-### Thông tin Cổng & Địa chỉ Dịch vụ
+### Thông tin Kết nối Mạng Tailscale & Localhost
 
-| Dịch vụ | Địa chỉ Host | Docker Network Internal | Mô tả |
-|---|---|---|---|
-| **BIDV Minutes API** | `http://<IP_MAY_CHU>:20135` | `http://bidv-minutes:20135` | REST API sinh file `.docx` và `.pdf` chuẩn thể thức BIDV |
-| **GSB Core API** | `http://<IP_MAY_CHU>:20133` | `http://gsb:20133` | Cổng OpenAI-compatible kết nối các mô hình Gemini |
-| **Interactive Docs** | `http://<IP_MAY_CHU>:20135/docs` | - | Swagger UI tương tác trực tiếp trên trình duyệt |
+> **Địa chỉ IP Tailscale của máy chủ:** `100.116.58.118` (Tên máy: `pop-os-1`)  
+> Mọi máy tính, laptop, điện thoại hoặc thiết bị trong cùng mạng Tailscale đều có thể kết nối trực tiếp không cần cấu hình port-forward hay NAT.
+
+| Dịch vụ | Địa chỉ qua Tailscale IP | Địa chỉ Localhost | Docker Internal | Mô tả |
+|---|---|---|---|---|
+| **BIDV Minutes API (JSON/Upload)** | `http://100.116.58.118:20135` | `http://127.0.0.1:20135` | `http://bidv-minutes:20135` | REST API sinh file `.docx` và `.pdf` chuẩn thể thức BIDV |
+| **BIDV Minutes Swagger Docs** | `http://100.116.58.118:20135/docs` | `http://127.0.0.1:20135/docs` | - | Giao diện tài liệu API tương tác trực tiếp |
+| **BIDV Minutes Web UI** | `http://100.116.58.118:20135/` | `http://127.0.0.1:20135/` | - | Giao diện Web kéo thả file cho người dùng cuối |
+| **GSB Core API (OpenAI)** | `http://100.116.58.118:20133/v1` | `http://127.0.0.1:20133/v1` | `http://gsb:20133/v1` | Cổng OpenAI-compatible (kết nối trực tiếp Gemini) |
+| **GSB Web Control Plane** | `http://100.116.58.118:20133/ui` | `http://127.0.0.1:20133/ui` | - | Quản lý tài khoản Gemini & xem hạn mức Quota |
 
 ---
 
@@ -53,7 +58,8 @@ Dịch vụ này nhận đầu vào là bản ghi chép cuộc họp (hoặc tra
 
 Đây là endpoint chuẩn nhất dành cho các client backend, AI agent, hệ thống tự động hóa.
 
-- **URL:** `http://<host>:20135/api/v1/generate`
+- **URL qua Tailscale:** `http://100.116.58.118:20135/api/v1/generate`  
+  *(hoặc `http://127.0.0.1:20135/api/v1/generate` nếu gọi trên cùng máy)*
 - **Method:** `POST`
 - **Headers:** `Content-Type: application/json`
 
@@ -73,7 +79,7 @@ Dịch vụ này nhận đầu vào là bản ghi chép cuộc họp (hoặc tra
 
 #### Ví dụ Request (cURL)
 ```bash
-curl -X POST "http://127.0.0.1:20135/api/v1/generate" \
+curl -X POST "http://100.116.58.118:20135/api/v1/generate" \
   -H "Content-Type: application/json" \
   -d '{
     "transcript": "Ngày 27/10/2026, tại Hội trường BIDV, đồng chí Hoàng Việt Hùng - Tổng Giám đốc BIDV chủ trì cuộc họp cấp cao song phương với Tencent. Hai bên thống nhất: 1. Thí điểm WeChat Pay trong Q1/2027 do Khối Bán lẻ và Ban CNTT đầu mối. 2. Xây dựng Private Cloud hoàn thành trước tháng 12/2026 do Ban CNTT và Trung tâm CNTT thực hiện.",
@@ -94,8 +100,8 @@ curl -X POST "http://127.0.0.1:20135/api/v1/generate" \
   "message": "Đã tạo biên bản thành công theo đúng thể thức chuẩn BIDV",
   "model_used": "gemini-argon",
   "doc_type": "BB",
-  "docx_download_url": "http://127.0.0.1:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.docx",
-  "pdf_download_url": "http://127.0.0.1:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.pdf",
+  "docx_download_url": "http://100.116.58.118:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.docx",
+  "pdf_download_url": "http://100.116.58.118:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.pdf",
   "docx_filename": "Bien_ban_hop_BIDV_20261027_094500_abc123.docx",
   "pdf_filename": "Bien_ban_hop_BIDV_20261027_094500_abc123.pdf",
   "text_content": "Văn bản nội dung đầy đủ được AI tổng hợp...",
@@ -111,12 +117,12 @@ curl -X POST "http://127.0.0.1:20135/api/v1/generate" \
 
 Dành cho các ứng dụng có sẵn tệp tài liệu `.docx`, `.txt`, `.md` cần gửi trực tiếp.
 
-- **URL:** `http://<host>:20135/api/v1/upload`
+- **URL:** `http://100.116.58.118:20135/api/v1/upload`
 - **Method:** `POST`
 - **Headers:** `Content-Type: multipart/form-data`
 
 ```bash
-curl -X POST "http://127.0.0.1:20135/api/v1/upload" \
+curl -X POST "http://100.116.58.118:20135/api/v1/upload" \
   -F "file=@/duong/dan/ghi_chep_hop.docx" \
   -F "doc_type=BB" \
   -F "model=gemini-argon" \
@@ -131,10 +137,10 @@ Client dùng đường dẫn `docx_download_url` hoặc `pdf_download_url` nhậ
 
 ```bash
 # Tải file Word
-curl -O "http://127.0.0.1:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.docx"
+curl -O "http://100.116.58.118:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.docx"
 
 # Tải file PDF
-curl -O "http://127.0.0.1:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.pdf"
+curl -O "http://100.116.58.118:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_abc123.pdf"
 ```
 
 ---
@@ -143,7 +149,7 @@ curl -O "http://127.0.0.1:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_a
 
 - **Kiểm tra trạng thái kết nối:**
   ```bash
-  curl -s http://127.0.0.1:20135/api/health
+  curl -s http://100.116.58.118:20135/api/health
   ```
   *Phản hồi:*
   ```json
@@ -165,7 +171,8 @@ curl -O "http://127.0.0.1:20135/api/download/Bien_ban_hop_BIDV_20261027_094500_a
 Ngoài dịch vụ tạo biên bản BIDV, client có thể sử dụng trực tiếp **GSB** như một máy chủ OpenAI chuẩn (`OpenAI-compatible HTTP Daemon`) để tương tác với Gemini Web.
 
 ### 3.1. Thông số kết nối GSB
-- **Base URL:** `http://<host>:20133/v1`
+- **Base URL (qua Tailscale):** `http://100.116.58.118:20133/v1`
+- **Base URL (Localhost):** `http://127.0.0.1:20133/v1`
 - **API Key:** `public` (hoặc giá trị trong cấu hình `BRIDGE_API_KEY`)
 - **Headers:** `Authorization: Bearer public`
 
@@ -178,8 +185,9 @@ Ngoài dịch vụ tạo biên bản BIDV, client có thể sử dụng trực t
 ```python
 from openai import OpenAI
 
+# Kết nối qua Tailscale IP
 client = OpenAI(
-    base_url="http://127.0.0.1:20133/v1",
+    base_url="http://100.116.58.118:20133/v1",
     api_key="public"
 )
 
@@ -203,8 +211,10 @@ print(response.choices[0].message.content)
 ```python
 import requests
 
+SERVER_IP = "100.116.58.118"  # Tailscale IP máy chủ
+
 def create_bidv_minutes(transcript_text, doc_type="BB", title=""):
-    url = "http://127.0.0.1:20135/api/v1/generate"
+    url = f"http://{SERVER_IP}:20135/api/v1/generate"
     payload = {
         "transcript": transcript_text,
         "doc_type": doc_type,
@@ -231,6 +241,8 @@ if __name__ == "__main__":
 ### 4.2. Node.js / TypeScript Client
 
 ```typescript
+const SERVER_IP = "100.116.58.118"; // Tailscale IP máy chủ
+
 interface GenerateResponse {
   status: string;
   docx_download_url: string;
@@ -241,7 +253,7 @@ interface GenerateResponse {
 }
 
 async function generateMinutes(transcript: string): Promise<GenerateResponse> {
-  const res = await fetch("http://127.0.0.1:20135/api/v1/generate", {
+  const res = await fetch(`http://${SERVER_IP}:20135/api/v1/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -300,7 +312,7 @@ func main() {
 	body, _ := json.Marshal(payload)
 	client := &http.Client{Timeout: 120 * time.Second}
 
-	resp, err := client.Post("http://127.0.0.1:20135/api/v1/generate", "application/json", bytes.NewBuffer(body))
+	resp, err := client.Post("http://100.116.58.118:20135/api/v1/generate", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		panic(err)
 	}
@@ -336,7 +348,7 @@ class Program
         };
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        var response = await client.PostAsync("http://127.0.0.1:20135/api/v1/generate", content);
+        var response = await client.PostAsync("http://100.116.58.118:20135/api/v1/generate", content);
 
         if (response.IsSuccessStatusCode)
         {
